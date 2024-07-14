@@ -40,6 +40,40 @@ int isInstructionLegal(unsigned instr)
 /* 10 Points */
 void ALU(unsigned A, unsigned B, char ALUControl, unsigned *ALUresult, char *Zero)
 {
+        
+    switch (ALUControl)
+    {
+    case 0:
+        *ALUresult = A + B;
+        break;
+    case 1: 
+        *ALUresult = A - B;
+        break;
+    case 2:
+        *ALUresult = ((int) A < (int) B) ? 1: 0;
+        break;
+    case 3:
+        *ALUresult = (A < B) ? 1 : 0;
+        break;
+    case 4:
+        *ALUresult = A & B;
+        break;
+    case 5:
+        *ALUresult = A ^ B;
+        break;
+    case 6:
+        *ALUresult = B << 16;
+        break;
+    case 7:
+        *ALUresult = ~A;
+        break;
+    }
+
+    if (*ALUresult == 0) {
+        *Zero = 1;
+    } else {
+        *Zero = 0;
+    }
 }
 
 /* instruction fetch */
@@ -160,12 +194,19 @@ int instruction_decode(unsigned op, struct_controls *controls)
 /* 5 Points */
 void read_register(unsigned r1, unsigned r2, unsigned *Reg, unsigned *data1, unsigned *data2)
 {
+    *data1 = Reg[r1];
+    *data2 = Reg[r2];
 }
 
 /* Sign Extend */
 /* 10 Points */
 void sign_extend(unsigned offset, unsigned *extended_value)
 {
+    if (offset & 0x00008000) {
+        *extended_value = offset | 0xFFFF0000;
+    } else {
+        *extended_value = offset;
+    }
 }
 
 /* ALU operations */
