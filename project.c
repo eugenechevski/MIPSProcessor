@@ -1,12 +1,37 @@
 #include "spimcore.h"
 
-#define MEM_START 0x0000
 #define MEM_END 0xFFFF
 
 int isInstructionLegal(unsigned instr)
 {
-    // TODO
-    return 0;
+    unsigned opcode = instr >> 26;
+    unsigned funct = instr & 0x3F;
+
+    switch(opcode) {
+        case 0x0: // R-type instructions
+            switch(funct) {
+                case 0x20: // add
+                case 0x22: // subtract
+                case 0x24: // and
+                case 0x25: // or
+                case 0x2a: // slt (set on less than)
+                case 0x2b: // sltu (set less than unsigned)
+                    return 1;
+                default:
+                    return 0;
+            }
+        case 0x8:  // addi (add immediate)
+        case 0x23: // lw (load word)
+        case 0x2b: // sw (store word)
+        case 0xf:  // lui (load upper immediate)
+        case 0x4:  // beq (branch on equal)
+        case 0xa:  // slti (set less than immediate)
+        case 0xb:  // sltiu (set less than immediate unsigned)
+        case 0x2:  // j (jump)
+            return 1;
+        default:
+            return 0;
+    }
 }
 
 /* ALU */
@@ -19,33 +44,51 @@ void ALU(unsigned A, unsigned B, char ALUControl, unsigned *ALUresult, char *Zer
 /* 10 Points */
 int instruction_fetch(unsigned PC, unsigned *Mem, unsigned *instruction)
 {
-    // A flag
-    int Halt = 0;
+    // Check if PC is word-aligned
+    if (PC % 4 != 0) {
+        return 1; // Halt if not word-aligned
+    }
+
+    // Check if PC is within memory bounds
+    if (PC >> 2 >= MEM_END) {
+        return 1; // Halt if out of bounds
+    }
 
     // Fetch the instruction from memory
-    unsigned instr;
-    if (PC >> 2 < MEM_START || PC >> 2 > MEM_END)
-    {
-        Halt = 1;
-        return Halt;
+    *instruction = Mem[PC >> 2];
+
+    // Check if the instruction is legal
+    if (!isInstructionLegal(*instruction)) {
+        return 1; // Halt if instruction is illegal
     }
 
-    instr = Mem[PC >> 2];
-
-    if (!isInstructionLegal(instr))
-    {
-        Halt = 1;
-        return Halt;
-    }
-
-    *instruction = instr;
-    return Halt;
+    return 0; // No halt condition
 }
 
 /* instruction partition */
 /* 10 Points */
 void instruction_partition(unsigned instruction, unsigned *op, unsigned *r1, unsigned *r2, unsigned *r3, unsigned *funct, unsigned *offset, unsigned *jsec)
 {
+    // Extract opcode (bits 31-26)
+    *op = (instruction >> 26) & 0x3F;
+
+    // Extract r1 (rs) (bits 25-21)
+    *r1 = (instruction >> 21) & 0x1F;
+
+    // Extract r2 (rt) (bits 20-16)
+    *r2 = (instruction >> 16) & 0x1F;
+
+    // Extract r3 (rd) (bits 15-11)
+    *r3 = (instruction >> 11) & 0x1F;
+
+    // Extract funct (bits 5-0)
+    *funct = instruction & 0x3F;
+
+    // Extract offset (bits 15-0)
+    *offset = instruction & 0xFFFF;
+
+    // Extract jsec (bits 25-0)
+    *jsec = instruction & 0x3FFFFFF;
 }
 
 /* instruction decode */
