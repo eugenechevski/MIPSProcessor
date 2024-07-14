@@ -7,30 +7,32 @@ int isInstructionLegal(unsigned instr)
     unsigned opcode = instr >> 26;
     unsigned funct = instr & 0x3F;
 
-    switch(opcode) {
-        case 0x0: // R-type instructions
-            switch(funct) {
-                case 0x20: // add
-                case 0x22: // subtract
-                case 0x24: // and
-                case 0x25: // or
-                case 0x2a: // slt (set on less than)
-                case 0x2b: // sltu (set less than unsigned)
-                    return 1;
-                default:
-                    return 0;
-            }
-        case 0x8:  // addi (add immediate)
-        case 0x23: // lw (load word)
-        case 0x2b: // sw (store word)
-        case 0xf:  // lui (load upper immediate)
-        case 0x4:  // beq (branch on equal)
-        case 0xa:  // slti (set less than immediate)
-        case 0xb:  // sltiu (set less than immediate unsigned)
-        case 0x2:  // j (jump)
+    switch (opcode)
+    {
+    case 0x0: // R-type instructions
+        switch (funct)
+        {
+        case 0x20: // add
+        case 0x22: // subtract
+        case 0x24: // and
+        case 0x25: // or
+        case 0x2a: // slt (set on less than)
+        case 0x2b: // sltu (set less than unsigned)
             return 1;
         default:
             return 0;
+        }
+    case 0x8:  // addi (add immediate)
+    case 0x23: // lw (load word)
+    case 0x2b: // sw (store word)
+    case 0xf:  // lui (load upper immediate)
+    case 0x4:  // beq (branch on equal)
+    case 0xa:  // slti (set less than immediate)
+    case 0xb:  // sltiu (set less than immediate unsigned)
+    case 0x2:  // j (jump)
+        return 1;
+    default:
+        return 0;
     }
 }
 
@@ -45,12 +47,14 @@ void ALU(unsigned A, unsigned B, char ALUControl, unsigned *ALUresult, char *Zer
 int instruction_fetch(unsigned PC, unsigned *Mem, unsigned *instruction)
 {
     // Check if PC is word-aligned
-    if (PC % 4 != 0) {
+    if (PC % 4 != 0)
+    {
         return 1; // Halt if not word-aligned
     }
 
     // Check if PC is within memory bounds
-    if (PC >> 2 >= MEM_END) {
+    if (PC >> 2 >= MEM_END)
+    {
         return 1; // Halt if out of bounds
     }
 
@@ -58,7 +62,8 @@ int instruction_fetch(unsigned PC, unsigned *Mem, unsigned *instruction)
     *instruction = Mem[PC >> 2];
 
     // Check if the instruction is legal
-    if (!isInstructionLegal(*instruction)) {
+    if (!isInstructionLegal(*instruction))
+    {
         return 1; // Halt if instruction is illegal
     }
 
@@ -95,6 +100,60 @@ void instruction_partition(unsigned instruction, unsigned *op, unsigned *r1, uns
 /* 15 Points */
 int instruction_decode(unsigned op, struct_controls *controls)
 {
+    // Initialize all control signals
+    controls->RegDst = 0;
+    controls->Jump = 0;
+    controls->Branch = 0;
+    controls->MemRead = 0;
+    controls->MemtoReg = 0;
+    controls->ALUOp = 0;
+    controls->MemWrite = 0;
+    controls->ALUSrc = 0;
+    controls->RegWrite = 0;
+
+    switch (op)
+    {
+    case 0x0: // R-type instructions
+        controls->RegDst = 1;
+        controls->RegWrite = 1;
+        controls->ALUOp = 0x7;
+        break;
+    case 0x2: // j
+        controls->Jump = 1;
+        break;
+    case 0x4: // beq
+        controls->Branch = 1;
+        controls->ALUOp = 0x1; // Subtraction for comparison
+        break;
+    case 0x8: // addi
+    case 0xa: // slti
+    case 0xb: // sltiu
+        controls->ALUSrc = 1;
+        controls->RegWrite = 1;
+        controls->ALUOp = (op == 0x8) ? 0x0 : ((op == 0xa) ? 0x2 : 0x3);
+        break;
+    case 0xf: // lui
+        controls->ALUSrc = 1;
+        controls->RegWrite = 1;
+        controls->ALUOp = 0x6; // Special ALU operation for lui
+        break;
+    case 0x23: // lw
+        controls->ALUSrc = 1;
+        controls->MemRead = 1;
+        controls->RegWrite = 1;
+        controls->MemtoReg = 1;
+        controls->ALUOp = 0x0; // Addition for address calculation
+        break;
+    case 0x2b: // sw
+        controls->ALUSrc = 1;
+        controls->MemWrite = 1;
+        controls->ALUOp = 0x0; // Addition for address calculation
+        break;
+    default:
+        return 1; // Halt on invalid opcode
+    }
+
+    return 0; // No halt condition
 }
 
 /* Read Register */
