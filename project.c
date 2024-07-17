@@ -213,12 +213,98 @@ void sign_extend(unsigned offset, unsigned *extended_value)
 /* 10 Points */
 int ALU_operations(unsigned data1, unsigned data2, unsigned extended_value, unsigned funct, char ALUOp, char ALUSrc, unsigned *ALUresult, char *Zero)
 {
+    //If ALUSrc is asserted, we choose the sign-extended value.
+       if(ALUSrc == 1){
+           data2 = extended_value;
+       }
+       
+       if(ALUOp == 7){
+
+              switch (funct){
+
+                  case 0x4:
+                      ALUOp = 6; // Function code 000100 set ALU to be a shift logical left by 16 bits
+                      break;
+                  
+                  case 0x20:
+                      ALUOp = 0; // Function code 100000 set ALU to do an addition
+                      break;
+
+                  case 0x21:
+                      ALUOp = 1; // Function code 100001 set ALU to do a subtraction
+                      break;
+
+                  case 0x24:
+                      ALUOp = 4; // Function code 100100 set ALU to do a bitwise AND
+                      break;
+
+                  case 0x25:
+                      ALUOp = 5; // Function code 100101 set ALU to do a bitwise OR
+                      break;
+                  
+                  case 0x27:
+                      ALUOp = 7; // Function code 100111 set ALU to do a bitwise NOT
+                      break;
+                  
+                  case 0x2A:
+                      ALUOp = 2; // Function code 101010 set ALU to do a Set less than
+                      break;
+                  
+                  case 0x2B:
+                      ALUOp = 3; // Function code 101011 set ALU to do a Set less than
+                      break;
+                  
+                  default:
+                      return 1; // Halt on invalid function code
+
+              }
+              
+              // Calls ALU and perform R-type instruction function
+              ALU(data1, data2, ALUOp, ALUresult, Zero);
+          } else
+              
+              // Not an R-type instruction,performs ALUop set in Control
+              ALU(data1, data2, ALUOp, ALUresult, Zero);
+
+          // No halt condition
+          return 0;
+
 }
 
 /* Read / Write Memory */
 /* 10 Points */
 int rw_memory(unsigned ALUresult, unsigned data2, char MemWrite, char MemRead, unsigned *memdata, unsigned *Mem)
 {
+    
+    // Write to memory if MemWrite asserted
+    if(MemWrite == 1){
+        // Check access to correct memory address
+        if((ALUresult % 4) != 0){
+            
+            return 1;// Halt condition
+            
+        } else{
+            Mem[ALUresult/4] = data2; // misaligned memory access return Halt condition
+    }
+    }
+
+    // read from memory if MemRead asserted
+    if(MemRead == 1){
+        
+        // Check for word alignment before reading
+        if((ALUresult % 4) != 0){
+            
+            return 1; // misaligned memory access return Halt condition
+
+        }else{
+            *memdata = Mem[ALUresult/4]; // Read data from memory
+        }
+        }
+
+    // No Halt condition
+    return 0;
+
+
 }
 
 /* Write Register */
