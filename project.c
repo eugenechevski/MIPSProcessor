@@ -311,10 +311,47 @@ int rw_memory(unsigned ALUresult, unsigned data2, char MemWrite, char MemRead, u
 /* 10 Points */
 void write_register(unsigned r2, unsigned r3, unsigned memdata, unsigned ALUresult, char RegWrite, char RegDst, char MemtoReg, unsigned *Reg)
 {
+    unsigned data;
+
+    //  if whether to write data and where data comes from
+    if(RegWrite == 1 && MemtoReg ==1){
+        data = memdata;
+    }
+    else if (RegWrite ==1 && MemtoReg ==0)
+    {
+        data = ALUresult;
+    }
+
+     unsigned regester;
+
+    // determine adress
+    if(RegDst == 1){
+        // r type instruction
+        regester = r3;
+    }
+    else if (RegDst == 0)
+    {
+        regester = r2;
+    }
+
+    Reg[regester] = data;
 }
 
 /* PC update */
 /* 10 Points */
 void PC_update(unsigned jsec, unsigned extended_value, char Branch, char Jump, char Zero, unsigned *PC)
 {
+    *PC += 4;
+
+    // check for branching conditon
+    if(Branch ==1 && Zero ==1){
+        *PC = *PC + (extended_value <<2);
+    }
+
+    // check for jump condition
+    if(Jump ==1){
+        *PC = (jsec <<2) | (*PC & 0xF0000000);
+    }
+
+    
 }
