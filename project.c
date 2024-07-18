@@ -40,17 +40,17 @@ int isInstructionLegal(unsigned instr)
 /* 10 Points */
 void ALU(unsigned A, unsigned B, char ALUControl, unsigned *ALUresult, char *Zero)
 {
-        
+
     switch (ALUControl)
     {
     case 0:
         *ALUresult = A + B;
         break;
-    case 1: 
+    case 1:
         *ALUresult = A - B;
         break;
     case 2:
-        *ALUresult = ((int) A < (int) B) ? 1: 0;
+        *ALUresult = ((int)A < (int)B) ? 1 : 0;
         break;
     case 3:
         *ALUresult = (A < B) ? 1 : 0;
@@ -69,9 +69,12 @@ void ALU(unsigned A, unsigned B, char ALUControl, unsigned *ALUresult, char *Zer
         break;
     }
 
-    if (*ALUresult == 0) {
+    if (*ALUresult == 0)
+    {
         *Zero = 1;
-    } else {
+    }
+    else
+    {
         *Zero = 0;
     }
 }
@@ -87,7 +90,7 @@ int instruction_fetch(unsigned PC, unsigned *Mem, unsigned *instruction)
     }
 
     // Check if PC is within memory bounds
-    if (PC >> 2 >= MEM_END)
+    if (PC >> 2 > MEM_END)
     {
         return 1; // Halt if out of bounds
     }
@@ -202,9 +205,12 @@ void read_register(unsigned r1, unsigned r2, unsigned *Reg, unsigned *data1, uns
 /* 10 Points */
 void sign_extend(unsigned offset, unsigned *extended_value)
 {
-    if (offset & 0x00008000) {
+    if (offset & 0x00008000)
+    {
         *extended_value = offset | 0xFFFF0000;
-    } else {
+    }
+    else
+    {
         *extended_value = offset;
     }
 }
@@ -213,98 +219,104 @@ void sign_extend(unsigned offset, unsigned *extended_value)
 /* 10 Points */
 int ALU_operations(unsigned data1, unsigned data2, unsigned extended_value, unsigned funct, char ALUOp, char ALUSrc, unsigned *ALUresult, char *Zero)
 {
-    //If ALUSrc is asserted, we choose the sign-extended value.
-       if(ALUSrc == 1){
-           data2 = extended_value;
-       }
-       
-       if(ALUOp == 7){
+    // If ALUSrc is asserted, we choose the sign-extended value.
+    if (ALUSrc == 1)
+    {
+        data2 = extended_value;
+    }
 
-              switch (funct){
+    if (ALUOp == 7)
+    {
 
-                  case 0x4:
-                      ALUOp = 6; // Function code 000100 set ALU to be a shift logical left by 16 bits
-                      break;
-                  
-                  case 0x20:
-                      ALUOp = 0; // Function code 100000 set ALU to do an addition
-                      break;
+        switch (funct)
+        {
 
-                  case 0x21:
-                      ALUOp = 1; // Function code 100001 set ALU to do a subtraction
-                      break;
+        case 0x4:
+            ALUOp = 6; // Function code 000100 set ALU to be a shift logical left by 16 bits
+            break;
 
-                  case 0x24:
-                      ALUOp = 4; // Function code 100100 set ALU to do a bitwise AND
-                      break;
+        case 0x20:
+            ALUOp = 0; // Function code 100000 set ALU to do an addition
+            break;
 
-                  case 0x25:
-                      ALUOp = 5; // Function code 100101 set ALU to do a bitwise OR
-                      break;
-                  
-                  case 0x27:
-                      ALUOp = 7; // Function code 100111 set ALU to do a bitwise NOT
-                      break;
-                  
-                  case 0x2A:
-                      ALUOp = 2; // Function code 101010 set ALU to do a Set less than
-                      break;
-                  
-                  case 0x2B:
-                      ALUOp = 3; // Function code 101011 set ALU to do a Set less than
-                      break;
-                  
-                  default:
-                      return 1; // Halt on invalid function code
+        case 0x21:
+            ALUOp = 1; // Function code 100001 set ALU to do a subtraction
+            break;
 
-              }
-              
-              // Calls ALU and perform R-type instruction function
-              ALU(data1, data2, ALUOp, ALUresult, Zero);
-          } else
-              
-              // Not an R-type instruction,performs ALUop set in Control
-              ALU(data1, data2, ALUOp, ALUresult, Zero);
+        case 0x24:
+            ALUOp = 4; // Function code 100100 set ALU to do a bitwise AND
+            break;
 
-          // No halt condition
-          return 0;
+        case 0x25:
+            ALUOp = 5; // Function code 100101 set ALU to do a bitwise OR
+            break;
 
+        case 0x27:
+            ALUOp = 7; // Function code 100111 set ALU to do a bitwise NOT
+            break;
+
+        case 0x2A:
+            ALUOp = 2; // Function code 101010 set ALU to do a Set less than
+            break;
+
+        case 0x2B:
+            ALUOp = 3; // Function code 101011 set ALU to do a Set less than
+            break;
+
+        default:
+            return 1; // Halt on invalid function code
+        }
+
+        // Calls ALU and perform R-type instruction function
+        ALU(data1, data2, ALUOp, ALUresult, Zero);
+    }
+    else
+
+        // Not an R-type instruction,performs ALUop set in Control
+        ALU(data1, data2, ALUOp, ALUresult, Zero);
+
+    // No halt condition
+    return 0;
 }
 
 /* Read / Write Memory */
 /* 10 Points */
 int rw_memory(unsigned ALUresult, unsigned data2, char MemWrite, char MemRead, unsigned *memdata, unsigned *Mem)
 {
-    
+
     // Write to memory if MemWrite asserted
-    if(MemWrite == 1){
+    if (MemWrite == 1)
+    {
         // Check access to correct memory address
-        if((ALUresult % 4) != 0){
-            
-            return 1;// Halt condition
-            
-        } else{
-            Mem[ALUresult/4] = data2; // misaligned memory access return Halt condition
-    }
+        if ((ALUresult % 4) != 0)
+        {
+
+            return 1; // Halt condition
+        }
+        else
+        {
+            Mem[ALUresult / 4] = data2; // misaligned memory access return Halt condition
+        }
     }
 
     // read from memory if MemRead asserted
-    if(MemRead == 1){
-        
-        // Check for word alignment before reading
-        if((ALUresult % 4) != 0){
-            
-            return 1; // misaligned memory access return Halt condition
+    if (MemRead == 1)
+    {
 
-        }else{
-            *memdata = Mem[ALUresult/4]; // Read data from memory
+        // Check for word alignment before reading
+        if ((ALUresult % 4) != 0)
+        {
+
+            return 1; // misaligned memory access return Halt condition
         }
+        else
+        {
+            *memdata = Mem[ALUresult / 4]; // Read data from memory
         }
+    }
 
     // No Halt condition
     return 0;
-
-
 }
 
 /* Write Register */
@@ -314,27 +326,29 @@ void write_register(unsigned r2, unsigned r3, unsigned memdata, unsigned ALUresu
     unsigned data;
 
     //  if whether to write data and where data comes from
-    if(RegWrite == 1 && MemtoReg ==1){
+    if (RegWrite == 1 && MemtoReg == 1)
+    {
         data = memdata;
     }
-    else if (RegWrite ==1 && MemtoReg ==0)
+    else if (RegWrite == 1 && MemtoReg == 0)
     {
         data = ALUresult;
     }
 
-     unsigned regester;
+    unsigned reg;
 
-    // determine adress
-    if(RegDst == 1){
+    // determine address
+    if (RegDst == 1)
+    {
         // r type instruction
-        regester = r3;
+        reg = r3;
     }
     else if (RegDst == 0)
     {
-        regester = r2;
+        reg = r2;
     }
 
-    Reg[regester] = data;
+    Reg[reg] = data;
 }
 
 /* PC update */
@@ -344,14 +358,14 @@ void PC_update(unsigned jsec, unsigned extended_value, char Branch, char Jump, c
     *PC += 4;
 
     // check for branching conditon
-    if(Branch ==1 && Zero ==1){
-        *PC = *PC + (extended_value <<2);
+    if (Branch == 1 && Zero == 1)
+    {
+        *PC = *PC + (extended_value << 2);
     }
 
     // check for jump condition
-    if(Jump ==1){
-        *PC = (jsec <<2) | (*PC & 0xF0000000);
+    if (Jump == 1)
+    {
+        *PC = *PC = (*PC & 0xF0000000) | (jsec << 2);
     }
-
-    
 }
