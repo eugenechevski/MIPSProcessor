@@ -38,37 +38,40 @@ int isInstructionLegal(unsigned instr)
 
 /* ALU */
 /* 10 Points */
+/* ALU */
+/* 10 Points */
 void ALU(unsigned A, unsigned B, char ALUControl, unsigned *ALUresult, char *Zero)
 {
-
+    // Perform the operation based on ALUControl signal
     switch (ALUControl)
     {
     case 0:
-        *ALUresult = A + B;
+        *ALUresult = A + B; // Addition
         break;
     case 1:
-        *ALUresult = A - B;
+        *ALUresult = A - B; // Subtraction
         break;
     case 2:
-        *ALUresult = ((int)A < (int)B) ? 1 : 0;
+        *ALUresult = ((int)A < (int)B) ? 1 : 0; // Set on less than (signed comparison)
         break;
     case 3:
-        *ALUresult = (A < B) ? 1 : 0;
+        *ALUresult = (A < B) ? 1 : 0; // Set on less than (unsigned comparison)
         break;
     case 4:
-        *ALUresult = A & B;
+        *ALUresult = A & B; // Bitwise AND
         break;
     case 5:
-        *ALUresult = A ^ B;
+        *ALUresult = A ^ B; // Bitwise XOR
         break;
     case 6:
-        *ALUresult = B << 16;
+        *ALUresult = B << 16; // Shift left logical by 16 bits
         break;
     case 7:
-        *ALUresult = ~A;
+        *ALUresult = ~A; // Bitwise NOT
         break;
     }
 
+    // Set Zero flag if the result is zero
     if (*ALUresult == 0)
     {
         *Zero = 1;
@@ -78,6 +81,7 @@ void ALU(unsigned A, unsigned B, char ALUControl, unsigned *ALUresult, char *Zer
         *Zero = 0;
     }
 }
+
 
 /* instruction fetch */
 /* 10 Points */
@@ -197,7 +201,10 @@ int instruction_decode(unsigned op, struct_controls *controls)
 /* 5 Points */
 void read_register(unsigned r1, unsigned r2, unsigned *Reg, unsigned *data1, unsigned *data2)
 {
+    // Read the value from the register at r1 and store it in data1
     *data1 = Reg[r1];
+
+    // Read the value from the register at r2 and store it in data2
     *data2 = Reg[r2];
 }
 
@@ -205,15 +212,19 @@ void read_register(unsigned r1, unsigned r2, unsigned *Reg, unsigned *data1, uns
 /* 10 Points */
 void sign_extend(unsigned offset, unsigned *extended_value)
 {
+    // If the most significant bit (bit 15) of the offset is 1, extend the sign
     if (offset & 0x00008000)
     {
+        // Sign-extend the offset to 32 bits by setting the upper 16 bits to 1
         *extended_value = offset | 0xFFFF0000;
     }
     else
     {
+        // If the msb is 0, value doesnt change
         *extended_value = offset;
     }
 }
+
 
 /* ALU operations */
 /* 10 Points */
